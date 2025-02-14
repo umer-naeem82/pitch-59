@@ -4,9 +4,10 @@ import json
 import pandas as pd
 import os
 from io import BytesIO
+import uuid
 
 BASE_API_URL = "https://flex.aidevlab.com"
-FLOW_ID = "df9d65cd-2184-4838-aed5-4d32e2c29a47"
+FLOW_ID = "8ecd8f19-cec8-4230-929f-04f68c78a38b"
 ENDPOINT = FLOW_ID
 API_KEY = "sk-NIdHHr50vHYaoekjq9c7I-XlOULm4W02BKErIIx0D28" 
 
@@ -52,9 +53,10 @@ def query_csv_agent(file_path, query):
     }
 
     tweaks = {
-        "ChatInput-IZ38C": {"input_value": query},
-        "File-0dKkw": {"path": file_path},  
-        "CSVAgent-2JpNc": {"path": file_path} 
+        "ChatInput-Sk8Ga": {"input_value": query},
+        "File-jDZrh": {"path": file_path},  
+        "CSVAgent-ji2No": {"path": file_path},
+        "Chroma-Jx8nJ":{"allow_duplicates": False, "persist_directory": str(uuid.uuid4())}
     }
 
     payload = {
