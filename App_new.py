@@ -55,7 +55,7 @@ def query_csv_agent(file_path, query):
     tweaks = {
         "ChatInput-Sk8Ga": {"input_value": query},
         "File-jDZrh": {"path": file_path},  
-        "CSVAgent-ji2No": {"path": file_path},
+        # "CSVAgent-ji2No": {"path": file_path},
         "Chroma-Jx8nJ":{"allow_duplicates": False, "persist_directory": str(uuid.uuid4())}
     }
 
