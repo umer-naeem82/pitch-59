@@ -92,7 +92,7 @@ if uploaded_file is not None:
 
         if file_path:
 
-            query = st.text_input("Enter your query:", placeholder="What is the CSV about?")
+            query = st.text_input("Enter your query:", placeholder="Search...")
 
             if st.button("Submit Query"):
                 if query.strip():
