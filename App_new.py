@@ -7,7 +7,7 @@ from io import BytesIO
 import uuid
 
 BASE_API_URL = "https://flex.aidevlab.com"
-FLOW_ID = "8ecd8f19-cec8-4230-929f-04f68c78a38b"
+FLOW_ID = "bd5b90b3-d1a9-4439-bdd6-9022e1c6ce38"
 ENDPOINT = FLOW_ID
 API_KEY = "sk-NIdHHr50vHYaoekjq9c7I-XlOULm4W02BKErIIx0D28" 
 
@@ -53,10 +53,10 @@ def query_csv_agent(file_path, query):
     }
 
     tweaks = {
-        "ChatInput-Sk8Ga": {"input_value": query},
-        "File-jDZrh": {"path": file_path},  
+        "ChatInput-vngYL": {"input_value": query},
+        "File-AwXub": {"path": file_path},  
         # "CSVAgent-ji2No": {"path": file_path},
-        "Chroma-Jx8nJ":{"allow_duplicates": False, "persist_directory": str(uuid.uuid4())}
+        "Chroma-Zzwzr":{"allow_duplicates": False, "persist_directory": str(uuid.uuid4())}
     }
 
     payload = {
