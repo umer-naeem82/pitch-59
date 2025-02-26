@@ -133,7 +133,7 @@ For each of the top-ranked businesses or professionals, include the following de
     except Exception as e:
         return {"error": "An error occurred while connecting to the API", "details": str(e)}
 
-st.set_page_config(page_title="CSV Query Agent", layout="wide")
+st.set_page_config(page_title="pitch-59", layout="wide")
 st.title("Pitch59")
 
 uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
@@ -189,6 +189,6 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"Error reading CSV file: {e}")
 
-st.sidebar.markdown("Pitch59")
+st.sidebar.markdown("")
 st.sidebar.markdown("-----------------------")
-st.sidebar.markdown("Your Pitch, Your Power!")
+st.sidebar.markdown("")
