@@ -78,7 +78,7 @@ Business Database: {context}"""
         }
     else:
         # Retrieve profile details from the DataFrame if it's a profile comparison
-        profile_data = df[df['referralEmail'] == profile_email].iloc[0]  # Retrieve details based on email
+        profile_data = df[df['Email'] == profile_email].iloc[0]  # Retrieve details based on email
         # profile_name = profile_data['name']
         # profile_experience = profile_data['experience']  # Adjust these based on your CSV columns
         # profile_skills = profile_data['skills']  # Adjust these based on your CSV columns
@@ -150,7 +150,7 @@ if uploaded_file is not None:
             profile_selected = st.checkbox("Select a Profile to Compare")
 
             if profile_selected:
-                profile_email = st.selectbox("Select a profile:", df['referralEmail'].tolist())  # Adjust based on your CSV column
+                profile_email = st.selectbox("Select a profile:", df['Email'].tolist())  # Adjust based on your CSV column
                 st.text_input("Query", "This field is disabled as you're comparing a specific profile.", disabled=True)
 
                 context = "Provide relevant context about this profile and comparison, if needed."  # Add some context here.
