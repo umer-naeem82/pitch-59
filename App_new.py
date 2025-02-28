@@ -6,7 +6,7 @@ from io import BytesIO
 import uuid
 
 BASE_API_URL = "https://flex.aidevlab.com"
-FLOW_ID = "bd5b90b3-d1a9-4439-bdd6-9022e1c6ce38"
+FLOW_ID = "597ca6c2-f2c8-4c95-926e-7b1563003428"
 ENDPOINT = FLOW_ID
 API_KEY = "sk-NIdHHr50vHYaoekjq9c7I-XlOULm4W02BKErIIx0D28"
 
@@ -77,16 +77,10 @@ Query: {question}
 Business Database: {context}"""
         }
     else:
-        # Retrieve profile details from the DataFrame if it's a profile comparison
-        profile_data = df[df['Email'] == profile_email].iloc[0]  # Retrieve details based on email
-        # profile_name = profile_data['name']
-        # profile_experience = profile_data['experience']  # Adjust these based on your CSV columns
-        # profile_skills = profile_data['skills']  # Adjust these based on your CSV columns
-        # profile_hobbies = profile_data['hobbies']  # Adjust these based on your CSV columns
 
         prompt = {
             "template": """ If the users query is an email address associated with any entry in the csv, then firstly find its busniness name. and then from this busniness name e.g (Healthcare or finance etc) find Best Three relevant matches from all the entries and List them.
-         Do not generate anything beyond the matches.
+         Do not generate anything beyond the matches. and DONOT list search email profile itself (List Best match three except the search one)
 
 For each of the top-ranked businesses or professionals, include the following details:
 
@@ -105,15 +99,15 @@ For each of the top-ranked businesses or professionals, include the following de
         }
 
     tweaks = {
-        "ChatInput-vngYL": {
+        "ChatInput-LMwWv": {
             "input_value": query,  # Input query or profile name
             # "text": query,  # Text field for ChatInput (required)
             # "sender": "User",  # Sender of the query
             # "sender_name": "User",  # Sender name (required)
         },
-        "File-AwXub": {"path": file_path},
-        "Chroma-Zzwzr": {"allow_duplicates": False, "persist_directory": str(uuid.uuid4())},
-        "Prompt-HORny": prompt  # Use the updated prompt
+        "File-nV1Fl": {"path": file_path},
+        "Chroma-PGNhT": {"allow_duplicates": False, "persist_directory": str(uuid.uuid4())},
+        "Prompt-gpSRI": prompt  # Use the updated prompt
     }
 
     payload = {
