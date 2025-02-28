@@ -79,16 +79,23 @@ Business Database: {context}"""
     else:
 
         prompt = {
-            "template": """ If the users query is an email address associated with any entry in the csv, then firstly find its busniness name. and then from this busniness name e.g (Healthcare or finance etc) find Best Three relevant matches from all the entries and List them.
-         Do not generate anything beyond the matches. and DONOT list search email profile itself (List Best match three except the search one)
+            "template": """ Task: When a user provides an email address, extract the corresponding business details, 
+            and from these details, find the three best external matches that are relevant but not part of the same company.
+             Do not include any business from the same company as the email provided, as this would be redundant for referrals.
+             The matches should be ranked based on similarities in industry, work focus, services offered, and business attributes.
 
-For each of the top-ranked businesses or professionals, include the following details:
+For each of the top three ranked businesses, provide the following details:
 
-- **Person's Name**: The name of the individual who owns or leads the business.
-- **Business Name**: The full name of the business or service provider, along with relevant details.
-- **Match Percentage**: A score ranging from 0 to 100% that reflects how closely the business matches the provided query (the business associated with the given email). Rank the businesses in descending order of their match percentage.
-- **Business Overview**: A brief and informative summary of the business, including its key services and areas of expertise.
-- **Justification**: A concise explanation of why each business was ranked, highlighting specific services, skills, or credentials that contributed to its match percentage.
+Person's Name: The name of the individual who owns or leads the business.
+Business Name: The full name of the business or service provider, along with relevant details.
+Match Percentage: A score between 0-100% indicating how closely the business matches the provided query. Rank the businesses in descending order of match percentage.
+Business Overview: A brief description of the business, including key services, areas of expertise, and industry focus.
+Justification: A concise explanation of why this business is a strong match. The justification should focus on similar work, complementary services, or shared industry focus that make it a suitable referral.
+Important Guidelines:
+
+No Repeated Company Names: Do not include any business or individual that belongs to the same company as the given email address.
+Relevant Matching Criteria: The focus should be on similarities in business type, services, work culture, and market.
+External Referrals Only: The matches must be businesses outside of the user's organization, ideally in a similar industry or with complementary services.
 
 **Query**: {question}
 
