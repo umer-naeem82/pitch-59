@@ -79,10 +79,7 @@ Business Database: {context}"""
     else:
 
         prompt = {
-            "template": """ Task: When a user provides an email address, extract the corresponding business details, 
-            and from these details, find the three best external matches that are relevant but not part of the same company.
-             Do not include any business from the same company as the email provided, as this would be redundant for referrals.
-             The matches should be ranked based on similarities in industry, work focus, services offered, and business attributes.
+            "template": """ Task: When a user provides an email address, extract the corresponding business details and find the three best external matches that are relevant but not part of the same company or parent brand. Do not include any business from the same parent organization, franchise, or company network as the given email. The matches should be ranked based on similarities in industry, services, attributes, and overall business approach.
 
 For each of the top three ranked businesses, provide the following details:
 
@@ -92,10 +89,11 @@ Match Percentage: A score between 0-100% indicating how closely the business mat
 Business Overview: A brief description of the business, including key services, areas of expertise, and industry focus.
 Justification: A concise explanation of why this business is a strong match. The justification should focus on similar work, complementary services, or shared industry focus that make it a suitable referral.
 Important Guidelines:
+Exclude Businesses from the Same Parent Brand/Franchise: If the provided email address corresponds to a business that is part of a larger franchise or parent organization (like EXIT Realty or any similar network), do not include other businesses from the same brand or franchise in the list of matches. These businesses may share too many common elements.
 
-No Repeated Company Names: Do not include any business or individual that belongs to the same company as the given email address.
-Relevant Matching Criteria: The focus should be on similarities in business type, services, work culture, and market.
-External Referrals Only: The matches must be businesses outside of the user's organization, ideally in a similar industry or with complementary services.
+Relevant Matching Criteria: Focus on finding businesses with similar industries, complementary services, or businesses that offer a similar business approach or market focus. This can include businesses in related industries (e.g., real estate agencies, mortgage brokers, home staging services, etc.).
+
+External Referrals Only: The matches must come from external organizations, ideally in a similar industry or offering complementary services, but not sharing the same parent company or overarching franchise.
 
 **Query**: {question}
 
