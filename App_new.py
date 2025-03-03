@@ -79,21 +79,35 @@ Business Database: {context}"""
     else:
 
         prompt = {
-            "template": """ Task: When a user provides an email address, extract the corresponding business details and find the three best external matches that are relevant but not part of the same company or parent brand. Do not include any business from the same parent organization, franchise, or company network as the given email. The matches should be ranked based on similarities in industry, services, attributes, and overall business approach.
+            "template": """ 
+Task:
 
-For each of the top three ranked businesses, provide the following details:
+There are two cases to handle when a user provides an email address:
+
+Case 1:
+When a user provides only an email address (e.g., xxxxxx@xxxx.com), extract the business details associated with that email and identify the three best external matches. These external businesses must not be part of the same company, parent brand, franchise, or company network as the provided email. Rank the businesses based on the following factors: similarity in industry, services, attributes, and overall business approach.
+
+Case 2:
+When a user provides an email address with additional instructions (e.g., "Find the person in USA (xxxxxx@xxxx.com)"), extract the business details of the person associated with the email and identify three external matches that align with the specific instruction provided (e.g., location, service type, etc.). Ensure these external businesses are not part of the same company, parent brand, franchise, or network as the given email address. Rank these businesses based on how closely they align with both the person's business and the specific instructions given.
+
+Important Note:
+If no businesses match the criteria or the specific instruction (e.g., no relevant businesses in Pakistan are found when that instruction is given), do not show any results. If no matches are found, simply indicate that no results were found. If one or more matches are found, show them ranked in descending order based on match percentage.
+
+For each of the top ranked businesses (if any), provide the following details:
 
 Person's Name: The name of the individual who owns or leads the business.
-Business Name: The full name of the business or service provider, along with relevant details.
+Business Name: The full name of the business, including any relevant details.
 Match Percentage: A score between 0-100% indicating how closely the business matches the provided query. Rank the businesses in descending order of match percentage.
 Business Overview: A brief description of the business, including key services, areas of expertise, and industry focus.
-Justification: A concise explanation of why this business is a strong match. The justification should focus on similar work, complementary services, or shared industry focus that make it a suitable referral.
+Justification: A concise explanation of why this business is a strong match. The justification should focus on factors such as similar work, complementary services, or shared industry focus.
 Important Guidelines:
-Exclude Businesses from the Same Parent Brand/Franchise: If the provided email address corresponds to a business that is part of a larger franchise or parent organization (like EXIT Realty or any similar network), do not include other businesses from the same brand or franchise in the list of matches. These businesses may share too many common elements.
+Exclude Businesses from the Same Parent Brand/Franchise: If the provided email address corresponds to a business that is part of a larger franchise or parent company (e.g., EXIT Realty), do not include businesses from the same network or brand in the list of matches. These businesses may share too many common elements.
 
-Relevant Matching Criteria: Focus on finding businesses with similar industries, complementary services, or businesses that offer a similar business approach or market focus. This can include businesses in related industries (e.g., real estate agencies, mortgage brokers, home staging services, etc.).
+Relevant Matching Criteria: Focus on businesses that have similar industries, complementary services, or a comparable business approach. This could include related industries such as real estate agencies, mortgage brokers, home staging services, etc.
 
-External Referrals Only: The matches must come from external organizations, ideally in a similar industry or offering complementary services, but not sharing the same parent company or overarching franchise.
+External Referrals Only: Ensure that the matches come from external organizations, ideally in similar or complementary industries, but explicitly avoid businesses that share the same parent company or overarching franchise.
+
+
 
 **Query**: {question}
 
@@ -149,25 +163,41 @@ if uploaded_file is not None:
             profile_selected = st.checkbox("Select a Profile to Compare")
 
             if profile_selected:
+                query = st.text_input("Enter your query:", placeholder="Search for specific Requirement for given Email.")
                 profile_email = st.selectbox("Select a profile:", df['Email'].dropna().tolist())  # Adjust based on your CSV column
-                st.text_input("Query", "This field is disabled as you're comparing a specific profile.", disabled=True)
+                # st.text_input("Query", "This field is disabled as you're comparing a specific profile.", disabled=True)
 
                 context = "Provide relevant context about this profile and comparison, if needed."  # Add some context here.
 
                 if st.button("Match"):
                     if profile_email:
-                        response = query_csv_agent(file_path, profile_email,prompt_type="COMPARE")
-                        print("response", response)
+                        if query:
+                            Temp=f"{query} ({profile_email})"
+                            response = query_csv_agent(file_path, Temp,prompt_type="COMPARE")
+                            print("response", response)
 
-                        st.subheader("Top 3 Matching Profiles:")
+                            st.subheader("Top 3 Matching Profiles:")
 
-                        if "error" in response:
-                            print("error running")
-                            st.error(response["error"])
-                            st.write(response["details"])
+                            if "error" in response:
+                                print("error running")
+                                st.error(response["error"])
+                                st.write(response["details"])
+                            else:
+                                matches = response.get("outputs", [])[0].get("outputs", [])[0].get("results", {}).get("message", {}).get("text", "")
+                                st.write(matches)
                         else:
-                            matches = response.get("outputs", [])[0].get("outputs", [])[0].get("results", {}).get("message", {}).get("text", "")
-                            st.write(matches)
+                            response = query_csv_agent(file_path, profile_email,prompt_type="COMPARE")
+                            print("response", response)
+
+                            st.subheader("Top 3 Matching Profiles:")
+
+                            if "error" in response:
+                                print("error running")
+                                st.error(response["error"])
+                                st.write(response["details"])
+                            else:
+                                matches = response.get("outputs", [])[0].get("outputs", [])[0].get("results", {}).get("message", {}).get("text", "")
+                                st.write(matches)
                     else:
                         st.warning("⚠️ Please select a profile before submitting.")
             else:
