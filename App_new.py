@@ -67,6 +67,7 @@ For each top-ranked business or professional, include:
 
 - Person name: who owns or leads the business.
 - Business Name: Full name of the business or service provider and some of its details.
+- Location: The physical location of the business (city, state, country).
 - Match Percentage: A score (0-100%) reflecting how well the business aligns with the query. Rank them in percentage order (Higher to Lower).
 - Business Overview: A brief yet informative summary of the business, its key services, and expertise.
 - Justification: A concise explanation of why the business was ranked, highlighting specific services, skills, or credentials that contribute to the match percentage.
@@ -97,6 +98,7 @@ For each of the top ranked businesses (if any), provide the following details:
 
 Person's Name: The name of the individual who owns or leads the business.
 Business Name: The full name of the business, including any relevant details.
+Location: The physical location of the business (city, state, country).
 Match Percentage: A score between 0-100% indicating how closely the business matches the provided query. Rank the businesses in descending order of match percentage.
 Business Overview: A brief description of the business, including key services, areas of expertise, and industry focus.
 Justification: A concise explanation of why this business is a strong match. The justification should focus on factors such as similar work, complementary services, or shared industry focus.
@@ -163,11 +165,11 @@ if uploaded_file is not None:
             profile_selected = st.checkbox("Select a Profile to Compare")
 
             if profile_selected:
-                query = st.text_input("Enter your query:", placeholder="Search for specific Requirement for given Email.")
                 profile_email = st.selectbox("Select a profile:", df['Email'].dropna().tolist())  # Adjust based on your CSV column
+                query = st.text_input("Enter your query:", placeholder="Search for specific Requirement for given Email. If not Left Blank")
                 # st.text_input("Query", "This field is disabled as you're comparing a specific profile.", disabled=True)
 
-                context = "Provide relevant context about this profile and comparison, if needed."  # Add some context here.
+                # context = "Provide relevant context about this profile and comparison, if needed."  # Add some context here.
 
                 if st.button("Match"):
                     if profile_email:
