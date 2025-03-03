@@ -82,7 +82,6 @@ Business Database: {context}"""
         prompt = {
             "template": """ 
 Task:
-
 There are two cases to handle when a user provides an email address:
 
 Case 1:
@@ -92,7 +91,10 @@ Case 2:
 When a user provides an email address with additional instructions (e.g., "Find the person in USA (xxxxxx@xxxx.com)"), extract the business details of the person associated with the email and identify three external matches that align with the specific instruction provided (e.g., location, service type, etc.). Ensure these external businesses are not part of the same company, parent brand, franchise, or network as the given email address. Rank these businesses based on how closely they align with both the person's business and the specific instructions given.
 
 Important Note:
-If no businesses match the criteria or the specific instruction (e.g., no relevant businesses in Pakistan are found when that instruction is given), do not show any results. If no matches are found, simply indicate that no results were found. If one or more matches are found, show them ranked in descending order based on match percentage.
+If no businesses match the criteria or the specific instruction (e.g., no relevant businesses in the specified location), do not show any results. Only show matches when businesses exist that meet the given criteria and location. If no matches are found in the requested location, return a statement such as:
+
+"No businesses were found in the specified location that matched the criteria."
+If one or more businesses are found in the specified location, show them ranked in descending order based on match percentage.
 
 For each of the top ranked businesses (if any), provide the following details:
 
@@ -108,7 +110,6 @@ Exclude Businesses from the Same Parent Brand/Franchise: If the provided email a
 Relevant Matching Criteria: Focus on businesses that have similar industries, complementary services, or a comparable business approach. This could include related industries such as real estate agencies, mortgage brokers, home staging services, etc.
 
 External Referrals Only: Ensure that the matches come from external organizations, ideally in similar or complementary industries, but explicitly avoid businesses that share the same parent company or overarching franchise.
-
 
 
 **Query**: {question}
