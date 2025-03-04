@@ -6,19 +6,22 @@ from io import BytesIO
 import uuid
 
 BASE_API_URL = "https://flex.aidevlab.com"
-FLOW_ID = "597ca6c2-f2c8-4c95-926e-7b1563003428"
-ENDPOINT = FLOW_ID
+FLOW_ID_DB="6bd24819-ba6e-4ddc-99b9-271f4f2bd0d3"
+FLOW_ID_RUN="3d8c1f5c-8b7b-4879-a97c-6c383fee56a0"
+ENDPOINT_DB = FLOW_ID_DB
+ENDPOINT_RUN = FLOW_ID_RUN
 API_KEY = "sk-NIdHHr50vHYaoekjq9c7I-XlOULm4W02BKErIIx0D28"
 
 def upload_file_to_langflow(file):
     """
     Uploads a CSV file to Langflow and returns the uploaded file path.
     """
-    file_bytes = file.getvalue()  # Get bytes from file
-    file_obj = BytesIO(file_bytes)  # Convert to a file-like object
+    print("upload")
+    file_bytes = file.getvalue() 
+    file_obj = BytesIO(file_bytes)  
 
     files = {"file": (file.name, file_obj)}
-    url = f"{BASE_API_URL}/api/v1/upload/{ENDPOINT}"
+    url = f"{BASE_API_URL}/api/v1/upload/{ENDPOINT_DB}"
     headers = {"x-api-key": API_KEY}
 
     try:
@@ -42,17 +45,56 @@ def upload_file_to_langflow(file):
         st.error(f"Error uploading file: {e}")
         return None
 
-def query_csv_agent(file_path, query, prompt_type):
+
+def db_flow(file_path):
     """
     Sends a query to Langflow API using the uploaded CSV file and handles different prompts for each case.
     """
-    url = f"{BASE_API_URL}/api/v1/run/{ENDPOINT}?stream=false"
+    print("db_flow")
+    url = f"{BASE_API_URL}/api/v1/run/{ENDPOINT_DB}?stream=false"
+    headers = {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY
+    }
+    My_uuid=str(uuid.uuid4())
+    tweaks = {
+        "File-NZ1tS": {"path": file_path},
+        "Chroma-R5cfI": {"allow_duplicates": False, "persist_directory": My_uuid},
+    }
+
+    payload = {
+        "output_type": "chat",
+        "input_type": "chat",
+        "tweaks": tweaks
+    }
+
+    try:
+        st.write("Please wait while CSV file is being Parsing...")
+        response = requests.post(url, json=payload, headers=headers)
+
+        if response.status_code == 200:
+            st.success("File has been Parsed Successfully")
+            temp_json=response.json()
+            temp_json["UUID"]=My_uuid
+            return temp_json
+        else:
+            return {"error": f"Request failed with status code {response.status_code}", "details": response.text}
+    except Exception as e:
+        return {"error": "An error occurred while connecting to the API", "details": str(e)}
+
+
+
+def run_flow(query,My_uuid,prompt_type):
+    """
+    Sends a query to Langflow API using the uploaded CSV file and handles different prompts for each case.
+    """
+    print("run_flow")
+    url = f"{BASE_API_URL}/api/v1/run/{ENDPOINT_RUN}?stream=false"
     headers = {
         "Content-Type": "application/json",
         "x-api-key": API_KEY
     }
 
-    # Define prompts
     if prompt_type == "keyword":
         prompt = {
             "template": """Role: You are an advanced AI assistant specializing in business referrals and service provider search based on a user-provided query. Your goal is to efficiently analyze business profiles and identify the top three matches, ensuring precision, clarity, and professionalism in your output.
@@ -121,15 +163,11 @@ External Referrals Only: Ensure that the matches come from external organization
         }
 
     tweaks = {
-        "ChatInput-LMwWv": {
-            "input_value": query,  # Input query or profile name
-            # "text": query,  # Text field for ChatInput (required)
-            # "sender": "User",  # Sender of the query
-            # "sender_name": "User",  # Sender name (required)
+        "ChatInput-80DPw": {
+            "input_value": query,  
         },
-        "File-nV1Fl": {"path": file_path},
-        "Chroma-PGNhT": {"allow_duplicates": False, "persist_directory": str(uuid.uuid4())},
-        "Prompt-gpSRI": prompt  # Use the updated prompt
+        "Chroma-SWdnD": {"allow_duplicates": False, "persist_directory": My_uuid},
+        "Prompt-AugzP": prompt 
     }
 
     payload = {
@@ -149,78 +187,99 @@ External Referrals Only: Ensure that the matches come from external organization
     except Exception as e:
         return {"error": "An error occurred while connecting to the API", "details": str(e)}
 
+
+
+
+
+
+
 st.set_page_config(page_title="pitch-59", layout="wide")
 st.title("Pitch59")
 
+if 'file_uploaded' not in st.session_state:
+    st.session_state.file_uploaded = False
+    st.session_state.file_path = None
+    st.session_state.response = None
+    st.session_state.df = None
+    st.session_state.csv_displayed = False 
+
 uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 
-if uploaded_file is not None:
+if uploaded_file is not None and not st.session_state.file_uploaded:
     try:
-        df = pd.read_csv(uploaded_file)
-        st.write("Preview of uploaded file:")
-        st.dataframe(df)
-        st.write("Please wait File is Uploading to Server...")
-        file_path = upload_file_to_langflow(uploaded_file)
+        st.session_state.df = pd.read_csv(uploaded_file)
+        st.write("Please wait, File is Uploading to Server...")
+        
+        st.session_state.file_path = upload_file_to_langflow(uploaded_file)
+        st.session_state.response = db_flow(st.session_state.file_path)
+        
+        st.session_state.file_uploaded = True
+        st.session_state.csv_displayed = True 
 
-        if file_path:
-            profile_selected = st.checkbox("Select a Profile to Compare")
-
-            if profile_selected:
-                profile_email = st.selectbox("Select a profile:", df['Email'].dropna().tolist())  # Adjust based on your CSV column
-                query = st.text_input("Enter your query:", placeholder="Search for specific Requirement for given Email. If not Left Blank")
-                # st.text_input("Query", "This field is disabled as you're comparing a specific profile.", disabled=True)
-
-                # context = "Provide relevant context about this profile and comparison, if needed."  # Add some context here.
-
-                if st.button("Match"):
-                    if profile_email:
-                        if query:
-                            Temp=f"{query} ({profile_email})"
-                            response = query_csv_agent(file_path, Temp,prompt_type="COMPARE")
-                            print("response", response)
-
-                            st.subheader("Top 3 Matching Profiles:")
-
-                            if "error" in response:
-                                print("error running")
-                                st.error(response["error"])
-                                st.write(response["details"])
-                            else:
-                                matches = response.get("outputs", [])[0].get("outputs", [])[0].get("results", {}).get("message", {}).get("text", "")
-                                st.write(matches)
-                        else:
-                            response = query_csv_agent(file_path, profile_email,prompt_type="COMPARE")
-                            print("response", response)
-
-                            st.subheader("Top 3 Matching Profiles:")
-
-                            if "error" in response:
-                                print("error running")
-                                st.error(response["error"])
-                                st.write(response["details"])
-                            else:
-                                matches = response.get("outputs", [])[0].get("outputs", [])[0].get("results", {}).get("message", {}).get("text", "")
-                                st.write(matches)
-                    else:
-                        st.warning("⚠️ Please select a profile before submitting.")
-            else:
-                query = st.text_input("Enter your query:", placeholder="Search for attributes, experience, hobbies, etc.")
-                
-                if st.button("Submit Query"):
-                    if query.strip():
-                        response = query_csv_agent(file_path, query, prompt_type="keyword")
-
-                        st.subheader("Response:")
-                        if "error" in response:
-                            st.error(response["error"])
-                            st.write(response["details"])
-                        else:
-                            st.write(response["outputs"][0]["outputs"][0]["results"]["message"]["text"])
-                    else:
-                        st.warning("⚠️ Please enter a query before submitting.")
+        
     except Exception as e:
         st.error(f"Error reading CSV file: {e}")
 
-st.sidebar.markdown("")
-st.sidebar.markdown("-----------------------")
-st.sidebar.markdown("")
+if st.session_state.file_uploaded and st.session_state.csv_displayed:
+    st.write("Preview of uploaded file:")
+    st.dataframe(st.session_state.df)
+
+if st.session_state.file_uploaded:
+    profile_selected = st.checkbox("Select a Profile to Compare")
+
+    if profile_selected:
+        profile_email = st.selectbox("Select a profile:", st.session_state.df['Email'].dropna().tolist())
+        query = st.text_input("Enter your query:", placeholder="Search for specific Requirement for given Email. If not Left Blank")
+
+        if st.button("Match"):
+            if profile_email:
+                if query:
+                    Temp = f"{query} ({profile_email})"
+                    print("=======",Temp)
+                    response = run_flow(Temp, st.session_state.response["UUID"], prompt_type="COMPARE")
+                    print("response", response)
+
+                    st.subheader("Top 3 Matching Profiles:")
+
+                    if "error" in response:
+                        print("error running")
+                        st.error(response["error"])
+                        st.write(response["details"])
+                    else:
+                        matches = response.get("outputs", [])[0].get("outputs", [])[0].get("results", {}).get("message", {}).get("text", "")
+                        st.write(matches)
+                else:
+                    print("=======",profile_email)
+                    response = run_flow(profile_email, st.session_state.response["UUID"], prompt_type="COMPARE")
+                    print("response", response)
+
+                    st.subheader("Top 3 Matching Profiles:")
+
+                    if "error" in response:
+                        print("error running")
+                        st.error(response["error"])
+                        st.write(response["details"])
+                    else:
+                        matches = response.get("outputs", [])[0].get("outputs", [])[0].get("results", {}).get("message", {}).get("text", "")
+                        st.write(matches)
+            else:
+                st.warning("⚠️ Please select a profile before submitting.")
+    else:
+        query = st.text_input("Enter your query:", placeholder="Search for attributes, experience, hobbies, etc.")
+        
+        if st.button("Submit Query"):
+            if query.strip():
+                print("=======",query)
+                response = run_flow(query, st.session_state.response["UUID"], prompt_type="keyword")
+
+                st.subheader("Response:")
+                if "error" in response:
+                    st.error(response["error"])
+                    st.write(response["details"])
+                else:
+                    st.write(response["outputs"][0]["outputs"][0]["results"]["message"]["text"])
+            else:
+                st.warning("⚠️ Please enter a query before submitting.")
+
+else:
+    st.info("Please upload a CSV file to begin.")
