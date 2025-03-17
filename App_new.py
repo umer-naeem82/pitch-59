@@ -5,9 +5,12 @@ import os
 from io import BytesIO
 import uuid
 
+
+
+
 BASE_API_URL = "https://flex.aidevlab.com"
-FLOW_ID_DB="6bd24819-ba6e-4ddc-99b9-271f4f2bd0d3"
-FLOW_ID_RUN="3d8c1f5c-8b7b-4879-a97c-6c383fee56a0"
+FLOW_ID_DB="82f62119-9a91-42be-be2b-6b7422d3a104"
+FLOW_ID_RUN="f66aa5d8-fe7c-4674-8571-44f9f338ccc7"
 ENDPOINT_DB = FLOW_ID_DB
 ENDPOINT_RUN = FLOW_ID_RUN
 API_KEY = "sk-NIdHHr50vHYaoekjq9c7I-XlOULm4W02BKErIIx0D28"
@@ -58,8 +61,8 @@ def db_flow(file_path):
     }
     My_uuid=str(uuid.uuid4())
     tweaks = {
-        "File-NZ1tS": {"path": file_path},
-        "Chroma-R5cfI": {"allow_duplicates": False, "persist_directory": My_uuid},
+        "File-TDfyH": {"path": file_path},
+        "Chroma-ZF86p": {"allow_duplicates": False, "persist_directory": My_uuid},
     }
 
     payload = {
@@ -69,15 +72,19 @@ def db_flow(file_path):
     }
 
     try:
-        st.write("Please wait while CSV file is being Parsing...")
+        st.write("Please wait while CSV file is being Parsing. Iterating through row by row, scraping each given website link. (under 2 min process)")
         response = requests.post(url, json=payload, headers=headers)
-
+        print(response)
         if response.status_code == 200:
+            print("Yes True DB")
             st.success("File has been Parsed Successfully")
             temp_json=response.json()
             temp_json["UUID"]=My_uuid
+            print(temp_json)
             return temp_json
         else:
+            print("No DB")
+            st.error(f"Error From Server side.{response.status_code}")
             return {"error": f"Request failed with status code {response.status_code}", "details": response.text}
     except Exception as e:
         return {"error": "An error occurred while connecting to the API", "details": str(e)}
@@ -96,78 +103,90 @@ def run_flow(query,My_uuid,prompt_type):
     }
 
     if prompt_type == "keyword":
-        prompt = {
-            "template": """Role: You are an advanced AI assistant specializing in business referrals and service provider search based on a user-provided query. Your goal is to efficiently analyze business profiles and identify the top three matches, ensuring precision, clarity, and professionalism in your output.
+        print("==(keyword)==")
+        prompt = """Role: You are an advanced AI assistant specializing in business referrals and service provider searches based on a user-provided query. Your goal is to efficiently analyze business profiles and identify the top three matches, ensuring precision, clarity, and professionalism in your output.
 
 Instructions:
 
-If the users query or keyword is unrelated to finding businesses or professionals entries, politely guide them toward submitting a relevant request. If the query does not find any entry, do not generate anything from yourself.
-Evaluate the provided business data and rank the top three most relevant service providers based on the query.
-If the user provides only keywords (e.g., "Healthcare insurance," "Finance manager", or even single word like healthcare, health etc, or may be long sentence or question), extract relevant unique entries from the database or file content and list them in the same structured format.
-Present the results in a structured, easy-to-read format.
-For each top-ranked business or professional, include:
+1. If the user's query or keyword is unrelated to finding businesses or professional entries, kindly guide them to submit a relevant request. If the query does not find any entries, do not generate anything yourself.
 
-- Person name: who owns or leads the business.
-- Business Name: Full name of the business or service provider and some of its details.
-- Location: The physical location of the business (city, state, country).
-- Match Percentage: A score (0-100%) reflecting how well the business aligns with the query. Rank them in percentage order (Higher to Lower).
-- Business Overview: A brief yet informative summary of the business, its key services, and expertise.
-- Justification: A concise explanation of why the business was ranked, highlighting specific services, skills, or credentials that contribute to the match percentage.
+2. **First step:** Evaluate the provided business data from the Chroma DB and rank the top 10 most relevant service providers based on the query. These 10 entries should be the most relevant to the query, considering all available data such as business names, expertise, services, etc.
 
-Input Data:
+3. **Second step:** Once the top 10 entries have been identified, extract the LinkedIn IDs for these 10 businesses. Go to the LinkedIn profiles of these 10 service providers and gather more information from their profiles.
 
-Query: {question}
-Business Database: {context}"""
-        }
+4. **Third step:** If LinkedIn does not provide sufficient or relevant information, proceed to use the **Tavily Search Tool** for additional data on those 10 entries. 
+
+5. **Final step:** After gathering data from LinkedIn or Tavily Search (if needed), narrow down the 10 entries to the top 3 businesses. The top 3 should be the most relevant based on the user query, business expertise, available data, and profile information.
+
+6. If the user provides only keywords (e.g., "Healthcare insurance," "Finance manager," or even single words like healthcare, health, etc., or a long sentence or question), extract relevant unique entries from the database or file content and list them in the same structured format. Consider all available data (websites, business pitch, etc.) to ensure an accurate listing. If a business doesn't have a website, it doesn't necessarily mean it is of lower value—evaluate other attributes.
+
+7. **First priority** should be to use the **LinkedIn Search Tool**. If LinkedIn cannot provide sufficient information, use the **Tavily Search Tool** to gather more data.
+Note: - **If you cant find then just tell you cant find any. but dont generate any wrong information.
+
+8. Present the results in a structured, easy-to-read format. For each top-ranked business or professional, include the following details:
+
+- **Person Name:** Name of the person who owns or leads the business.
+- **Business Name:** Full name of the business or service provider, along with key details.
+- **Website Link:** Website link of the business if present. If no link is available, state "No Link" and provide a brief but relevant summary of the business based on available data.
+- **LinkedIn Link:** LinkedIn profile link of the person or business.
+- **Location:** Physical location of the business (city, state, country).
+- **Match Percentage:** A score (0-100%) reflecting how well the business aligns with the query. Rank the businesses in order of percentage (highest to lowest).
+- **Business Overview:** A concise yet informative summary of the business, its key services, and expertise.
+- **Justification:** A brief explanation of why the business was ranked in the given position, highlighting specific services, skills, or credentials that contribute to the match percentage.
+
+Note: Always use the **LinkedIn Search Tool** as your first priority. If LinkedIn fails to provide the necessary information, use the **Tavily Search Tool** to gather additional data and refine your results.
+"""
+
     else:
-
-        prompt = {
-            "template": """ 
-Task:
+        print("==(match)==")
+        prompt = """ 
+Role: You are an advanced AI assistant specializing in business referrals and service provider searches based on a user-provided query. Your goal is to efficiently analyze business profiles and identify the top three matches, ensuring precision, clarity, and professionalism in your output.
 There are two cases to handle when a user provides an email address:
 
-Case 1:
+**Case 1:**
 When a user provides only an email address (e.g., xxxxxx@xxxx.com), extract the business details associated with that email and identify the three best external matches. These external businesses must not be part of the same company, parent brand, franchise, or company network as the provided email. Rank the businesses based on the following factors: similarity in industry, services, attributes, and overall business approach.
 
-Case 2:
+**Case 2:**
 When a user provides an email address with additional instructions (e.g., "Find the person in USA (xxxxxx@xxxx.com)"), extract the business details of the person associated with the email and identify three external matches that align with the specific instruction provided (e.g., location, service type, etc.). Ensure these external businesses are not part of the same company, parent brand, franchise, or network as the given email address. Rank these businesses based on how closely they align with both the person's business and the specific instructions given.
 
-Important Note:
-If no businesses match the criteria or the specific instruction (e.g., no relevant businesses in the specified location), do not show any results. Only show matches when businesses exist that meet the given criteria and location. If no matches are found in the requested location, return a statement such as:
+**Important Steps:**
 
-"No businesses were found in the specified location that matched the criteria."
-If one or more businesses are found in the specified location, show them ranked in descending order based on match percentage.
+1. **First step:** Evaluate the provided business data from the Chroma DB and rank the top 10 most relevant businesses based on the email address and query. For **Case 1**, this would mean extracting businesses similar in industry, services, and approach. For **Case 2**, you will also factor in the specific instruction provided (such as location, service type, etc.).
+2. **Second step:** Once the top 10 entries have been identified, extract the LinkedIn IDs for these 10 businesses. Go to the LinkedIn profiles of these 10 businesses and gather more information from their profiles.
+3. **Third step:** If LinkedIn does not provide sufficient or relevant information, proceed to use the **Tavily Search Tool** for additional data on those 10 entries.
+4. **Final step:** After gathering data from LinkedIn or Tavily Search (if needed), narrow down the 10 entries to the top 3 businesses that best match the email address or the provided instruction. Rank these businesses based on how closely they align with the industry, services, location, and other criteria specified in the query.
 
-For each of the top ranked businesses (if any), provide the following details:
+**Important Notes:**
+- **Exclude Businesses from the Same Parent Brand/Franchise:** If the provided email address corresponds to a business that is part of a larger franchise or parent company (e.g., EXIT Realty), do not include businesses from the same network or brand in the list of matches. These businesses may share too many common elements.
+- **Relevant Matching Criteria:** Focus on businesses that have similar industries, complementary services, or a comparable business approach. This could include related industries such as real estate agencies, mortgage brokers, home staging services, etc.
+- **External Referrals Only:** Ensure that the matches come from external organizations, ideally in similar or complementary industries, but explicitly avoid businesses that share the same parent company or overarching franchise.
+- **If you cant find then just tell you cant find any. but dont generate any wrong information.
+**Results Presentation:**
+For each of the top-ranked businesses (if any), provide the following details:
 
-Person's Name: The name of the individual who owns or leads the business.
-Business Name: The full name of the business, including any relevant details.
-Location: The physical location of the business (city, state, country).
-Match Percentage: A score between 0-100% indicating how closely the business matches the provided query. Rank the businesses in descending order of match percentage.
-Business Overview: A brief description of the business, including key services, areas of expertise, and industry focus.
-Justification: A concise explanation of why this business is a strong match. The justification should focus on factors such as similar work, complementary services, or shared industry focus.
-Important Guidelines:
-Exclude Businesses from the Same Parent Brand/Franchise: If the provided email address corresponds to a business that is part of a larger franchise or parent company (e.g., EXIT Realty), do not include businesses from the same network or brand in the list of matches. These businesses may share too many common elements.
+- **Person's Name:** The name of the individual who owns or leads the business.
+- **Business Name:** The full name of the business, including any relevant details.
+- **Website Link:** Website link of the business if present. If no link is available, state "No Link" and provide a brief but relevant summary of the business based on available data.
+- **LinkedIn Link:** LinkedIn profile link of the person or business.
+- **Location:** The physical location of the business (city, state, country).
+- **Match Percentage:** A score between 0-100% indicating how closely the business matches the provided query. Rank the businesses in descending order of match percentage.
+- **Business Overview:** A brief description of the business, including key services, areas of expertise, and industry focus.
+- **Justification:** A concise explanation of why this business is a strong match. The justification should focus on factors such as similar work, complementary services, or shared industry focus.
 
-Relevant Matching Criteria: Focus on businesses that have similar industries, complementary services, or a comparable business approach. This could include related industries such as real estate agencies, mortgage brokers, home staging services, etc.
+**Important Guidelines:**
+- **Exclude Businesses from the Same Parent Brand/Franchise:** If the provided email address corresponds to a business that is part of a larger franchise or parent company (e.g., EXIT Realty), do not include businesses from the same network or brand in the list of matches. These businesses may share too many common elements.
+- **Relevant Matching Criteria:** Focus on businesses that have similar industries, complementary services, or a comparable business approach. This could include related industries such as real estate agencies, mortgage brokers, home staging services, etc.
+- **External Referrals Only:** Ensure that the matches come from external organizations, ideally in similar or complementary industries, but explicitly avoid businesses that share the same parent company or overarching franchise.
 
-External Referrals Only: Ensure that the matches come from external organizations, ideally in similar or complementary industries, but explicitly avoid businesses that share the same parent company or overarching franchise.
-
-
-**Query**: {question}
-
-**Business Database**: {context}  
-(Ensure that dont generate anything from yourself. if you can't able to find all three then just list that are found and leave note in the end)
-
-            """
-        }
+**Note:** Always use the **LinkedIn Search Tool** as your first priority. If LinkedIn fails to provide the necessary information, use the **Tavily Search Tool** to gather additional data and refine your results.
+"""
 
     tweaks = {
-        "ChatInput-80DPw": {
+        "ChatInput-6ZCEt": {
             "input_value": query,  
         },
-        "Chroma-SWdnD": {"allow_duplicates": False, "persist_directory": My_uuid},
-        "Prompt-AugzP": prompt 
+        "Chroma-qMdCm": {"allow_duplicates": False, "persist_directory": My_uuid},
+        "Agent-PorIY": {"system_prompt":prompt} 
     }
 
     payload = {
@@ -177,7 +196,7 @@ External Referrals Only: Ensure that the matches come from external organization
     }
 
     try:
-        st.write("Sending query to API...")
+        st.write("Please wait! Agent is searching from database, LinkedIn, websites and Intenet for Better Result...")
         response = requests.post(url, json=payload, headers=headers)
 
         if response.status_code == 200:
