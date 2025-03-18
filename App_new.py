@@ -288,7 +288,7 @@ Your mission is to deliver **highly relevant, professional, and independent busi
         },
         # "ChatOutput-XkGc1": {"session_id": str(My_uuid)},
         "Chroma-qMdCm": {"allow_duplicates": False, "persist_directory": My_uuid},
-        "Agent-PorIY": {"system_prompt": prompt} 
+        "Agent-PorIY": {"system_prompt": prompt,"session_id":My_uuid} 
     }
 
     payload = {
