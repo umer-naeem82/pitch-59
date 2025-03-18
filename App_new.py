@@ -115,7 +115,7 @@ Instructions:
 2. **Process Overview:**
    - **Step 1:** Analyze the provided business data from the Chroma DB. Rank the top 10 most relevant service providers based on the user’s query, considering factors such as business name, expertise, services offered, and available data (e.g., websites, business pitch).
    - **Step 2:** Extract LinkedIn IDs for these 10 businesses. Visit their LinkedIn profiles and gather additional details. Prioritize using **LinkedIn Search Tool** for this step.
-   - **Step 3:** If LinkedIn does not provide sufficient or relevant information or giving error like 400 ,mentioned this and porvide the information or data from thr database.
+   - **Step 3:** If LinkedIn does not provide sufficient or relevant information or giving error like 400 ,mentioned this issue that Linkedin has error and porvide the information or data from thr database.
    - **Step 4:** After gathering data, narrow down the 10 entries to the top 3 businesses, ranking them based on their alignment with the email or instruction.
 
 3. **Match Percentage Calculation:**
