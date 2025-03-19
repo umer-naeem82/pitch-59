@@ -8,7 +8,7 @@ import uuid
 
 
 
-BASE_API_URL = "https://flexapi.aidevlab.com"
+BASE_API_URL = "https://flex.aidevlab.com"
 FLOW_ID_DB="82f62119-9a91-42be-be2b-6b7422d3a104"
 FLOW_ID_RUN="f66aa5d8-fe7c-4674-8571-44f9f338ccc7"
 ENDPOINT_DB = FLOW_ID_DB
