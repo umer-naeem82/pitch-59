@@ -9,7 +9,7 @@ import uuid
 
 
 BASE_API_URL = "https://flexapi.aidevlab.com"
-FLOW_ID_DB="82f62119-9a91-42be-be2b-6b7422d3a104"
+FLOW_ID_DB="004053e7-6480-45ba-8c74-8f6af9a16b15"
 FLOW_ID_RUN="f66aa5d8-fe7c-4674-8571-44f9f338ccc7"
 ENDPOINT_DB = FLOW_ID_DB
 ENDPOINT_RUN = FLOW_ID_RUN
@@ -61,8 +61,8 @@ def db_flow(file_path):
     }
     My_uuid=str(uuid.uuid4())
     tweaks = {
-        "File-TDfyH": {"path": file_path},
-        "Chroma-ZF86p": {"allow_duplicates": False, "persist_directory": My_uuid},
+        "File-nxPsj": {"path": file_path},
+        "Chroma-lrKH6": {"allow_duplicates": False, "persist_directory": My_uuid},
     }
 
     payload = {
@@ -72,7 +72,7 @@ def db_flow(file_path):
     }
 
     try:
-        st.write("Please wait while CSV file is being Parsing. Iterating through row by row, scraping each given website link. (under 30 sec process)")
+        st.write("Please wait while CSV file is being Parsing. Iterating through row by row, scraping each given website link. (Under 1 min process)")
         response = requests.post(url, json=payload, headers=headers)
         print(response)
         if response.status_code == 200:
@@ -114,10 +114,10 @@ Instructions:
    - If no entries are found, do not generate anything yourself. I repeat, **don't generate anything**. Always get the result from the database (Chroma DB) and then process this data.
 
 2. **Process Overview:**
-   - **Step 1:** Analyze the provided business data from the Chroma DB. Extract and Rank the top Best 5 most relevant service providers based on the user’s query from the database, considering factors such as business name, expertise, services offered, and available data (e.g., website data, business pitch).
+   - **Step 1:** Analyze the provided business data from the Chroma DB. Extract and Rank the top Best 5 most relevant service providers based on the user’s query from the database, considering factors such as business name, expertise, services offered, and available data (e.g., website data, business pitch, Instagram page data).
    - **Step 2:** Extract LinkedIn IDs for these 5 businesses. Visit their LinkedIn profiles and gather additional details. **IMPORTANT:** Call the **LinkedIn Search Tool 5 times**, one for each LinkedIn profile (don't just call once and retrieve a single profile). Make sure to input each LinkedIn link separately for the 5 businesses.
    - **Step 3:** If LinkedIn does not provide sufficient or relevant information or gives an error (e.g., 400 error), mention that LinkedIn has an issue and provide the information directly from the database.
-   - **Step 4:** After gathering data fom Linkedin too for this 5 profiles, narrow down this 5 entries with all the data(from linkedin, website, etc) to the top 3 businesses, ranking them based on their alignment with the email or instruction.
+   - **Step 4:** After gathering data fom Linkedin too for this 5 profiles, narrow down this 5 entries with all the data(from linkedin, website, instagram pasge etc) to the top 3 businesses, ranking them based on their alignment with the email or instruction.
 
 3. **Match Percentage Calculation:**
    The **Match Percentage** reflects how closely a service provider aligns with the user’s query, considering multiple factors:
@@ -143,6 +143,10 @@ Instructions:
      - Followers and Connections
      - Previous work/fields
      - Biggest Achievements
+   - **Instagram Link: Link to the LinkedIn profile (if available)
+     - Brief Biography in one Line
+     - Followers and Following
+     - Link and detail to Best post in this page related to business.
    - **Location:** Physical location of the business (city, state, country).
    - **Match Percentage:** A score (0-100%) calculated from each match category indicating the relevance of the business to the user’s query, ranked from highest to lowest.
    - **Business Overview:** A brief summary of the business, its services, and its areas of expertise.
@@ -206,7 +210,7 @@ You are an advanced AI assistant specializing in business referrals and service 
 }"
 ### **Step 3: Handle LinkedIn Data Limitations**
 - If **LinkedIn does not provide sufficient or relevant business information** or **returns an error (e.g., 400 error)**, **mention this in the response** and provide available data from the **Chroma DB** or other sources.
-- If LinkedIn fails to provide useful data, **still process the business and provide matches from the available database** based on the data from **Chroma DB** or **Tavily Search Tool**.
+- If LinkedIn fails to provide useful data, **still process the business and provide matches from the available database** based on the data from **Chroma DB** 
   
 ### **Step 4: Finalize and Rank the Top 3 Businesses**
 - Based on the collected information from LinkedIn, **narrow down** the **top 5 businesses to the top 3**.
@@ -264,6 +268,10 @@ For each **top 3 business match**, provide:
      - Followers and Connections
      - Previous work/fields
      - Biggest Achievements
+   - **Instagram Link: Link to the LinkedIn profile (if available)
+     - Brief Biography in one Line
+     - Followers and Following
+     - Link and detail to Best post in this page related to business.
    - **Location:** Physical location of the business (city, state, country).
    - **Match Percentage:** A score (0-100%) calculated from each match category indicating the relevance of the business to the user’s query, ranked from highest to lowest.
    - **Business Overview:** A brief summary of the business, its services, and its areas of expertise.
