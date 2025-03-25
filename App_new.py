@@ -9,7 +9,7 @@ import uuid
 
 
 BASE_API_URL = "https://flexapi.aidevlab.com"
-FLOW_ID_DB="004053e7-6480-45ba-8c74-8f6af9a16b15"
+FLOW_ID_DB="eb9dc7f1-f84c-4192-bbd0-ca65b0d4ab52"
 FLOW_ID_RUN="f66aa5d8-fe7c-4674-8571-44f9f338ccc7"
 ENDPOINT_DB = FLOW_ID_DB
 ENDPOINT_RUN = FLOW_ID_RUN
@@ -61,8 +61,8 @@ def db_flow(file_path):
     }
     My_uuid=str(uuid.uuid4())
     tweaks = {
-        "File-nxPsj": {"path": file_path},
-        "Chroma-lrKH6": {"allow_duplicates": False, "persist_directory": My_uuid},
+        "File-lRDgt": {"path": file_path},
+        "Chroma-urG1e": {"allow_duplicates": False, "persist_directory": My_uuid},
     }
 
     payload = {
