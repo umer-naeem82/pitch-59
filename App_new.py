@@ -146,7 +146,6 @@ Instructions:
    - **Instagram Link: Link to the LinkedIn profile (if available)
      - Brief Biography in one Line
      - Followers and Following
-     - Link and detail to Best post in this page related to business.
    - **Location:** Physical location of the business (city, state, country).
    - **Match Percentage:** A score (0-100%) calculated from each match category indicating the relevance of the business to the user’s query, ranked from highest to lowest.
    - **Business Overview:** A brief summary of the business, its services, and its areas of expertise.
@@ -271,7 +270,6 @@ For each **top 3 business match**, provide:
    - **Instagram Link: Link to the LinkedIn profile (if available)
      - Brief Biography in one Line
      - Followers and Following
-     - Link and detail to Best post in this page related to business.
    - **Location:** Physical location of the business (city, state, country).
    - **Match Percentage:** A score (0-100%) calculated from each match category indicating the relevance of the business to the user’s query, ranked from highest to lowest.
    - **Business Overview:** A brief summary of the business, its services, and its areas of expertise.
