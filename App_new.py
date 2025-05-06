@@ -61,7 +61,7 @@ def db_flow(file_path):
     }
     My_uuid=str(uuid.uuid4())
     tweaks = {
-        "File-a7yuI": {"path": file_path},
+        "File-lRDgt": {"path": file_path},
         "Chroma-urG1e": {"allow_duplicates": False, "persist_directory": My_uuid},
     }
 
