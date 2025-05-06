@@ -61,7 +61,7 @@ def db_flow(file_path):
     }
     My_uuid=str(uuid.uuid4())
     tweaks = {
-        "File-lRDgt": {"path": file_path},
+        "File-a7yuI": {"path": file_path},
         "Chroma-urG1e": {"allow_duplicates": False, "persist_directory": My_uuid},
     }
 
@@ -115,9 +115,7 @@ Instructions:
 
 2. **Process Overview:**
    - **Step 1:** Analyze the provided business data from the Chroma DB. Extract and Rank the top Best 5 most relevant service providers based on the user’s query from the database, considering factors such as business name, expertise, services offered, and available data (e.g., website data, business pitch, Instagram page data).
-   - **Step 2:** Extract LinkedIn IDs for these 5 businesses. Visit their LinkedIn profiles and gather additional details. **IMPORTANT:** Call the **LinkedIn Search Tool 5 times**, one for each LinkedIn profile (don't just call once and retrieve a single profile). Make sure to input each LinkedIn link separately for the 5 businesses.
-   - **Step 3:** If LinkedIn does not provide sufficient or relevant information or gives an error (e.g., 400 error), mention that LinkedIn has an issue and provide the information directly from the database.
-   - **Step 4:** After gathering data fom Linkedin too for this 5 profiles, narrow down this 5 entries with all the data(from linkedin, website, instagram pasge etc) to the top 3 businesses, ranking them based on their alignment with the email or instruction.
+   - **Step 2:** Narrow down this 5 entries with all the data (from website, Instagram page etc) to the top 3 businesses, ranking them based on their alignment with the email or instruction.
 
 3. **Match Percentage Calculation:**
    The **Match Percentage** reflects how closely a service provider aligns with the user’s query, considering multiple factors:
@@ -137,31 +135,23 @@ Instructions:
    - **Business Name:** Full name of the business or service provider, including key details about its offerings.
    - **Website Link:** Link to the business website (if available), or "No Link" with a list of services provided in keywords and bullet points.
    - **Services:** Specific Best all services (e.g., - service 1, - service 2, - service 3... and so on).
-   - **LinkedIn Link:** Link to the LinkedIn profile of the individual or business (if available) with all relevant information like:
-     - Current role
-     - Main Education
-     - Followers and Connections
-     - Previous work/fields
-     - Biggest Achievements
-   - **Instagram Link: Link to the LinkedIn profile (if available)
-     - Brief Biography in one Line
-     - Followers and Following
+   - **Instagram Link:** Link to the Instagram profile (if available)
+      - Brief Biography in one Line
+      - Followers and Following
    - **Location:** Physical location of the business (city, state, country).
    - **Match Percentage:** A score (0-100%) calculated from each match category indicating the relevance of the business to the user’s query, ranked from highest to lowest.
    - **Business Overview:** A brief summary of the business, its services, and its areas of expertise.
    - **Justification:** A concise explanation of why the business is a good match and what makes it stand out, including details about its services, expertise, or personal traits that align with the query.
 
-Add line after each entry   
+   Add line after each entry   
 
----
+   ---
 
 5. **Subjective Queries:** 
    - For subjective queries like "someone who loves extreme sports" or "someone who is fun," apply a more nuanced approach. These queries will have a lower maximum match percentage due to their inherent subjectivity. The match percentage should reflect both business expertise and personal traits but will be capped to avoid overestimating the match.
 
 6. **Evaluation & Feedback:**
    - After presenting the top results, allow the user to provide feedback on the accuracy of the matches. This feedback should be used to continuously refine the matching criteria and improve the accuracy of the system.
-
-**Note:** Always use **LinkedIn Search Tool** as the primary method for gathering information. If LinkedIn fails to provide sufficient or relevant data, provide the result you gather directly from the database.
 
 
 
@@ -180,7 +170,7 @@ You are an advanced AI assistant specializing in business referrals and service 
 ## 📌 Handling Email Queries:
 
 ### 🔹 **Case 1: Email Address Only**
-- When a user provides **only an email address** (e.g., `xxxxxx@xxxx.com`), extract **business details** associated with that email using database information and LinkedIn if needed.
+- When a user provides **only an email address** (e.g., `xxxxxx@xxxx.com`), extract **business details** associated with that email using database information.
 - Identify **5 external business matches** that provide **similar services or industry focus** but **are not part of the same company, parent brand, franchise, or business network**. External must.
 - Businesses should be ranked based on **industry alignment, service offerings, and overall business approach**.
 
@@ -198,28 +188,15 @@ You are an advanced AI assistant specializing in business referrals and service 
 - **For Case 1:** Prioritize businesses based on **industry, service type, and business approach**.
 - **For Case 2:** Consider the above **plus any specific user-provided criteria** (e.g., location, specialization, or any specific request).
 
-### **Step 2: Validate Business Identity Through LinkedIn**
-- Extract **LinkedIn IDs** for the **top 5 businesses** and gather additional **business details from their LinkedIn profiles**.
-- **Use LinkedIn Search Tool as the primary source** for business verification.
-- **IMPORTANT**: Call the **LinkedIn Search Tool 5 times**, once for each LinkedIn profile of the 5 businesses. Do **not call the LinkedIn tool once and get only one profile**. Make sure to extract data for each of the 5 profiles by calling the tool **individually** for each LinkedIn link.
-- ** this is the right way to call tool, here is the jason input "{
-  "flow_tweak_data": {
-    "--here chatinput------------": "here link"
-  }
-}"
-### **Step 3: Handle LinkedIn Data Limitations**
-- If **LinkedIn does not provide sufficient or relevant business information** or **returns an error (e.g., 400 error)**, **mention this in the response** and provide available data from the **Chroma DB** or other sources.
-- If LinkedIn fails to provide useful data, **still process the business and provide matches from the available database** based on the data from **Chroma DB** 
-  
-### **Step 4: Finalize and Rank the Top 3 Businesses**
-- Based on the collected information from LinkedIn, **narrow down** the **top 5 businesses to the top 3**.
+### **Step 2: Finalize and Rank the Top 3 Businesses**
+- Based on the collected information from Chroma DB and other available sources, **narrow down** the **top 5 businesses to the top 3**.
 - Rank them **in descending order** based on how well they align with the email query or specified instructions.
 
 ---
 
 ## 🔍 **Dealing with Missing Business Information**
 If **no detailed business information is available** for a given email:
-1. **Check the company’s official website** and **LinkedIn profile**.
+1. **Check the company’s official website** and **public web/social media sources**.
 2. Extract business details from these sources.
 3. If **no business is found for this specific email**, **clearly mention this** in the response and instruct the user to provide a different email and do not generate anything further.
 4. Do **not generate any additional assumptions or unrelated information**.
@@ -261,15 +238,9 @@ For each **top 3 business match**, provide:
    - **Business Name:** Full name of the business or service provider, including key details about its offerings.
    - **Website Link:** Link to the business website (if available), or "No Link" with a list of services provided in keywords and bullet points.
    - **Services:** Specific Best all services (e.g., - service 1, - service 2, - service 3... and so on).
-   - **LinkedIn Link:** Link to the LinkedIn profile of the individual or business (if available) with all relevant information like:
-     - Current role
-     - Main Education
-     - Followers and Connections
-     - Previous work/fields
-     - Biggest Achievements
-   - **Instagram Link: Link to the LinkedIn profile (if available)
-     - Brief Biography in one Line
-     - Followers and Following
+   - **Instagram Link:** Link to the Instagram profile (if available)
+      - Brief Biography in one Line
+      - Followers and Following
    - **Location:** Physical location of the business (city, state, country).
    - **Match Percentage:** A score (0-100%) calculated from each match category indicating the relevance of the business to the user’s query, ranked from highest to lowest.
    - **Business Overview:** A brief summary of the business, its services, and its areas of expertise.
@@ -277,16 +248,7 @@ For each **top 3 business match**, provide:
 
 ---
 
-## 🔍 **Preferred Search Tools & Priorities**
-1️⃣ **LinkedIn Search Tool** (Primary)  
-   - First priority for extracting and validating business details.  
-2️⃣ **Tavily Search Tool** (Secondary)  
-   - Use **if LinkedIn does not provide sufficient data**.  
-
----
-
 ## ⚠️ **Key Takeaways**
-✅ **Always prioritize LinkedIn for business validation** before other sources.  
 ✅ **If business details are missing, check the company’s website and social media** before concluding.  
 ✅ **Ensure businesses are independent and do not belong to the same corporate group.**  
 ✅ **Clearly mention if no business data is found and suggest an alternative email query.**  
