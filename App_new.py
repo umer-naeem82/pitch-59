@@ -4,54 +4,92 @@ import pandas as pd
 import os
 from io import BytesIO
 import uuid
-
-
+import psycopg2
 
 
 BASE_API_URL = "https://flexapi.aidevlab.com"
-FLOW_ID_DB="eb9dc7f1-f84c-4192-bbd0-ca65b0d4ab52"
+FLOW_ID_DB="ca219bed-8041-4649-bf48-dd862064fc19"
 FLOW_ID_RUN="f66aa5d8-fe7c-4674-8571-44f9f338ccc7"
 ENDPOINT_DB = FLOW_ID_DB
 ENDPOINT_RUN = FLOW_ID_RUN
 API_KEY = "sk-NIdHHr50vHYaoekjq9c7I-XlOULm4W02BKErIIx0D28"
 
-def upload_file_to_langflow(file):
-    """
-    Uploads a CSV file to Langflow and returns the uploaded file path.
-    """
-    print("upload")
-    file_bytes = file.getvalue() 
-    file_obj = BytesIO(file_bytes)  
+# Database connection parameters
+db_params = {
+    'host': 'pitch59-web-dev-api-db.cz3keviqyg78.us-east-1.rds.amazonaws.com',
+    'port': '5432',
+    'dbname': 'pitch59_db',
+    'user': 'user_readonly',
+    'password': 'eH!xTTK7Dnf5BusqAYNFLaz2x'
+}
 
-    files = {"file": (file.name, file_obj)}
-    url = f"{BASE_API_URL}/api/v1/upload/{ENDPOINT_DB}"
-    headers = {"x-api-key": API_KEY}
-
+def fetch_businesses_data():
+    """
+    Connects to the database and fetches business data
+    """
     try:
-        response = requests.post(url, files=files, headers=headers)
+        connection = psycopg2.connect(**db_params)
+        cursor = connection.cursor()
         
-        if response.status_code == 201:
-            response_json = response.json()
-            file_path = response_json.get("file_path")
-
-            if file_path:
-                st.success(f"File uploaded successfully!")
-                print(file_path)
-                return file_path
-            else:
-                st.error("Error: File uploaded, but no path returned.")
-                return None
-        else:
-            st.error(f"File upload failed: {response.text}")
-            return None
+        print("Fetching the last 500 rows from businesses table...")
+        
+        columns = [
+            "business_id", "business_name", "business_type", "title", 
+            "facebook_link", "linkedin_link", "instagram_link", "twitter_link", 
+            "pinterest_link", "education_level", "email", "contact_number", 
+            "website_link", "address", "state", "user_id", "military_service", 
+            "elevator_pitch_script"
+        ]
+        
+        columns_str = ", ".join(f"\"{col}\"" for col in columns)
+        query = f"SELECT {columns_str} FROM \"businesses\" ORDER BY business_id DESC LIMIT 500;"
+        
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        
+        all_data_string = ""
+        emails = []
+        
+        for row in rows:
+            row_data = ""
+            for i, col in enumerate(columns):
+                value = row[i] if row[i] is not None else ""
+                if col == "email" and value:
+                    emails.append(value)
+                row_data += f"{col}: {value}, "
+            
+            if row_data.endswith(", "):
+                row_data = row_data[:-2]
+                
+            row_str = row_data + "==end==\n"
+            all_data_string += row_str
+        
+        cursor.close()
+        connection.close()
+        
+        print(f"Successfully fetched {len(rows)} rows from businesses table")
+        
+        # Create a sample DataFrame for preview - convert to strings to avoid type issues
+        preview_data = []
+        if rows:
+            # Take first 10 rows for preview
+            for i in range(min(10, len(rows))):
+                row_dict = {}
+                for j, col in enumerate(columns):
+                    # Convert all values to strings to avoid type conversion issues
+                    row_dict[col] = str(rows[i][j]) if rows[i][j] is not None else ""
+                preview_data.append(row_dict)
+        
+        return all_data_string, preview_data, emails
+        
     except Exception as e:
-        st.error(f"Error uploading file: {e}")
-        return None
+        st.error(f"Error connecting to database: {e}")
+        return None, None, None
 
 
-def db_flow(file_path):
+def db_flow(all_data_string):
     """
-    Sends a query to Langflow API using the uploaded CSV file and handles different prompts for each case.
+    Sends a query to Langflow API using the database data and handles different prompts for each case.
     """
     print("db_flow")
     url = f"{BASE_API_URL}/api/v1/run/{ENDPOINT_DB}?stream=false"
@@ -60,9 +98,13 @@ def db_flow(file_path):
         "x-api-key": API_KEY
     }
     My_uuid=str(uuid.uuid4())
+    
+   
+    
+    
     tweaks = {
-        "File-lRDgt": {"path": file_path},
-        "Chroma-urG1e": {"allow_duplicates": False, "persist_directory": My_uuid},
+        "TextInput-8pioA": {"input_value": all_data_string},
+        "Chroma-rza2k": {"allow_duplicates": False, "persist_directory": My_uuid},
     }
 
     payload = {
@@ -72,12 +114,12 @@ def db_flow(file_path):
     }
 
     try:
-        st.write("Please wait while CSV file is being Parsing. Iterating through row by row, scraping each given website link. (Under 1 min process)")
+        st.write("Please wait while database data is being processed.")
         response = requests.post(url, json=payload, headers=headers)
         print(response)
         if response.status_code == 200:
             print("Yes True DB")
-            st.success("File has been Parsed Successfully")
+            st.success("Data has been processed successfully")
             temp_json=response.json()
             temp_json["UUID"]=My_uuid
             print(temp_json)
@@ -108,10 +150,7 @@ def run_flow(query,My_uuid,prompt_type):
 Role: You are an advanced AI assistant specializing in business referrals and service provider searches based on a user query. Your goal is to identify the top 3 most relevant matches, ensuring precision, clarity, and professionalism in your output.
 
 Instructions:
-
-1. **Query Relevance:** 
-   - If the user's query or keyword is unrelated to finding businesses or service providers, kindly guide them to submit a relevant request. 
-   - If no entries are found, do not generate anything yourself. I repeat, **don't generate anything**. Always get the result from the database (Chroma DB) and then process this data.
+1. - If no entries are found, do not generate anything yourself. I repeat, **don't generate anything**. Always get the result from the database (Chroma DB) and then process this data.
 
 2. **Process Overview:**
    - **Step 1:** Analyze the provided business data from the Chroma DB. Extract and Rank the top Best 5 most relevant service providers based on the user’s query from the database, considering factors such as business name, expertise, services offered, and available data (e.g., website data, business pitch, Instagram page data).
@@ -153,8 +192,7 @@ Instructions:
 6. **Evaluation & Feedback:**
    - After presenting the top results, allow the user to provide feedback on the accuracy of the matches. This feedback should be used to continuously refine the matching criteria and improve the accuracy of the system.
 
-
-
+Note: Use Chroma db tool to answer the query.
 
 """
 
@@ -299,39 +337,46 @@ Your mission is to deliver **highly relevant, professional, and independent busi
 st.set_page_config(page_title="pitch-59", layout="wide")
 st.title("Pitch59")
 
-if 'file_uploaded' not in st.session_state:
-    st.session_state.file_uploaded = False
-    st.session_state.file_path = None
+if 'data_loaded' not in st.session_state:
+    st.session_state.data_loaded = False
     st.session_state.response = None
-    st.session_state.df = None
-    st.session_state.csv_displayed = False 
+    st.session_state.preview_data = None
+    st.session_state.all_data_string = None
+    st.session_state.emails = None
 
-uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
-
-if uploaded_file is not None and not st.session_state.file_uploaded:
+if st.button("Load Database Data") and not st.session_state.data_loaded:
     try:
-        st.session_state.df = pd.read_csv(uploaded_file)
-        st.write("Please wait, File is Uploading to Server...")
-        
-        st.session_state.file_path = upload_file_to_langflow(uploaded_file)
-        st.session_state.response = db_flow(st.session_state.file_path)
-        
-        st.session_state.file_uploaded = True
-        st.session_state.csv_displayed = True 
-
-        
+        with st.spinner("Connecting to database and retrieving data..."):
+            st.session_state.all_data_string, st.session_state.preview_data, st.session_state.emails = fetch_businesses_data()
+            
+            if st.session_state.all_data_string is not None:
+                st.session_state.response = db_flow(st.session_state.all_data_string)
+                st.session_state.data_loaded = True
+                st.success("Database data loaded successfully!")
+            else:
+                st.error("Failed to retrieve data from database.")
     except Exception as e:
-        st.error(f"Error reading CSV file: {e}")
+        st.error(f"Error: {e}")
 
-if st.session_state.file_uploaded and st.session_state.csv_displayed:
-    st.write("Preview of uploaded file:")
-    st.dataframe(st.session_state.df)
+if st.session_state.data_loaded and st.session_state.preview_data:
+    st.write("Preview of database data:")
+    try:
+        # Convert to DataFrame and ensure all columns are string type
+        preview_df = pd.DataFrame(st.session_state.preview_data)
+        # Convert all columns to string type
+        for col in preview_df.columns:
+            preview_df[col] = preview_df[col].astype(str)
+        st.dataframe(preview_df)
+    except Exception as e:
+        st.error(f"Error displaying preview: {e}")
+        # Fallback to displaying raw data
+        st.json(st.session_state.preview_data[:3])
 
-if st.session_state.file_uploaded:
+if st.session_state.data_loaded:
     profile_selected = st.checkbox("Select a Profile to Compare")
 
     if profile_selected:
-        profile_email = st.selectbox("Select a profile:", st.session_state.df['Email'].dropna().tolist())
+        profile_email = st.selectbox("Select a profile:", st.session_state.emails if hasattr(st.session_state, 'emails') and st.session_state.emails else ["No emails available"])
         query = st.text_input("Enter your query:", placeholder="Search for specific Requirement for given Email. If not Left Blank")
 
         if st.button("Match"):
@@ -385,4 +430,4 @@ if st.session_state.file_uploaded:
                 st.warning("⚠️ Please enter a query before submitting.")
 
 else:
-    st.info("Please upload a CSV file to begin.")
+    st.info("Please click on Load database button.")
